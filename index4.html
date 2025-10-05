@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco Domes on Mars | NASA Space Apps Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            /* Ensure the body is a flex container for the main content to float above the background */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Needed for absolute background positioning */
+            padding: 0; /* Remove default padding */
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Ensures content inside body is centered if possible */
+        }
+
+        /* Fullscreen Image Background Styling */
+        #image-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the image covers the whole screen */
+            z-index: -10; /* Keep it behind all content */
+        }
+        
+        /* Overlay to make text readable */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Increased overlay opacity for better contrast on a busy background */
+            background-color: rgba(0, 0, 0, 0.7); 
+            z-index: -9; 
+        }
+
+        /* Custom style for beautiful, gradient buttons */
+        .floating-btn {
+            background-image: linear-gradient(to right, #06b6d4, #14b8a6); /* Cyan to Teal gradient */
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5); /* Neon glow effect */
+        }
+        .floating-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.8);
+            background-image: linear-gradient(to right, #14b8a6, #06b6d4); /* Reverse gradient on hover */
+        }
+        .floating-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #06b6d4, 0 0 50px #14b8a6; /* Stronger glow for active button */
+            border: 2px solid #ffffff;
+            background-image: linear-gradient(to right, #00d4ff, #00ffc8); /* Brightened gradient for active state */
+        }
+
+        /* Center content and ensure it's above the background */
+        main, header, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Responsive grid adjustments for content layout */
+        .content-grid {
+            display: grid;
+            gap: 1.5rem; /* 6 in Tailwind spacing */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .content-grid-2col {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Ensure content cards have a nice frosted look */
+        .content-card {
+            background-color: rgba(17, 24, 39, 0.85); /* Slightly darker, less transparent */
+            backdrop-filter: blur(5px); /* Add blur effect for modern look */
+        }
+
+    </style>
+    <script>
+        // Data mapping concepts to their images and content titles
+        const concepts = {
+            'Martian Hostile Environment': {
+                title: 'DOOM IN MARS: The Hostile Environment',
+                // Updated with public placeholder
+                imageUrl: 'img1.jpg', 
+                content: `
+                    <div class="space-y-6">
+                        <p class="text-gray-200 text-lg">
+                            Creating an eco dome on Mars means building a *miniature of Earth within a hostile environment*. 
+                            Life support systems are not just for comfort; they are critical defenses against four major hazards.
+                        </p>
+                        <div class="content-grid content-grid-2col">
+                            <div class="space-y-4">
+                                <h3 class="text-xl font-bold text-red-500">No Atmosphere = No Help</h3>
+                                <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                    <li>Near-vacuum conditions require internal pressure of 101 kPa.</li>
+                                    <li>No air for natural heat transfer (conduction/convection).</li>
+                                    <li>Radiation: No magnetic field or thick atmosphere to filter deadly cosmic and solar rays.</li>
+                                </ul>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-xl font-bold text-red-500">Extreme Temperature Swings</h3>
+                                <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                    <li>Average temperature is $-60^{\circ}C$, requiring intense insulation.</li>
+                                    <li>Dome must manage both solar heat gain and rapid heat loss into space.</li>
+                                    <li>Dust storms pose risks to solar arrays and structural integrity.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            'Structural System': {
+                title: 'STRUCTURAL SYSTEM: Engineering the Structure',
+                // Updated with public placeholder
+                imageUrl: 'str.jpg', 
+                content: `
+                    <div class="content-grid content-grid-2col">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Geodesic Architecture</h3>
+                            <p class="text-gray-200">Lightweight geodesic design distributes stress evenly, withstanding Mars dust storms whilst maintaining internal pressure at Earth-like levels of 101 kPa.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Advanced Materials</h3>
+                            <p class="text-gray-200">Transparent aluminium or ETFE panels allow crucial sunlight penetration. Regolith-based concrete produced via 3D printing uses local Martian soil.</p>
+                        </div>
+                        <div class="space-y-4 col-span-2">
+                            <h3 class="text-xl font-bold text-sky-400">Modular Expansion</h3>
+                            <p class="text-gray-200">Interconnected modules for living, research, and hydroponics connect via airlocks. The colony starts small, then expands as resources arrive.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'Atmospheric Control': {
+                title: 'Creating a Breathable Atmosphere',
+                // Updated with public placeholder
+                imageUrl: 'Atmospheric control.jpg', 
+                content: `
+                    <div class="content-grid">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Oxygen Generation</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li>Electrolysis splits water into oxygen and hydrogen.</li>
+                                <li>Algae-based bioreactors provide biological production.</li>
+                                <li>Plant photosynthesis supplements atmospheric oxygen.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Carbon Dioxide Management</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li>Solid amine filters scrub exhaled $CO_{2}$.</li>
+                                <li>Metal-organic framework filters for advanced capture.</li>
+                                <li>Plants absorb $CO_{2}$ for photosynthesis, completing the cycle.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Monitoring</h3>
+                            <p class="text-gray-200">Automated sensors continuously monitor oxygen, carbon dioxide, temperature, humidity, and pressure levels, adjusting systems dynamically to maintain optimal conditions.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'Radiation Protection': {
+                title: 'RADIATION PROTECTION: Shielding Against Mars\' Deadly Environment',
+                // Updated with public placeholder
+                imageUrl: 'Radiation prtection.jpg', 
+                content: `
+                    <div class="content-grid">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Multi-Layer Shielding</h3>
+                            <p class="text-gray-200">Galactic cosmic rays and solar energetic particles pose constant danger. We use multiple layers of protection:</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li><strong>Regolith Cover:</strong> 2-3 metres of Martian regolith reduce radiation to near-Earth levels.</li>
+                                <li><strong>Water Layers:</strong> Water layers provide hydrogen-rich shielding whilst serving as drinking water storage.</li>
+                                <li><strong>Emergency Shelters:</strong> Anchored foundations prevent shifting during dust storms. Emergency radiation shelters provide protection during extreme solar events.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            'Energy System': {
+                title: 'ENERGY SYSTEM: Powering Life on Mars',
+                // Updated with public placeholder
+                imageUrl: 'energy system.jpg', 
+                content: `
+                    <div class="content-grid">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Primary Power Generation</h3>
+                            <p class="text-gray-200">A reliable, redundant power source is critical. This system utilizes a combination of:</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li><strong>Solar Arrays:</strong> High-efficiency panels to capture sunlight.</li>
+                                <li><strong>Fission Power:</strong> A small nuclear reactor provides reliable, continuous base power regardless of dust storms or Martian night.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Power Distribution & Storage</h3>
+                            <p class="text-gray-200">Advanced battery systems (e.g., solid-state) store excess power. All systems are managed by a smart grid to efficiently power life support, communication, and food production (the dome's largest energy consumer).</p>
+                        </div>
+                    </div>
+                `
+            },
+            'Water Cycle': {
+                title: 'WATER CYCLE: Closing the Water Loop',
+                // Updated with public placeholder
+                imageUrl: 'water cycle.jpg', 
+                content: `
+                    <div class="content-grid content-grid-2col">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Source and Reclamation</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li><strong>Water Extraction:</strong> Mining Martian ice deposits and atmospheric condensation.</li>
+                                <li><strong>Reclamation:</strong> Dehumidifiers capture moisture from the air for recycling.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Purification and Use</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li><strong>Purification:</strong> Multi-stage filtration and distillation to reach drinking water standards.</li>
+                                <li><strong>System Feed:</strong> Water is used for drinking, hygiene, food preparation, and plant transpiration (which cycles the moisture back into the air).</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            'Food Production': {
+                title: 'FOOD PRODUCTION: Growing Food in Greenhouses',
+                // Updated with public placeholder
+                imageUrl: 'food pro.jpg', 
+                content: `
+                    <div class="content-grid content-grid-2col">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Hydroponics & Aeroponics</h3>
+                            <p class="text-gray-200">Plants grow in nutrient-rich water or mist without soil. Crops like potatoes, wheat, lettuce, beans, and peas thrive in controlled conditions with precise nutrient delivery.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Algae Cultivation</h3>
+                            <p class="text-gray-200">Spirulina and other microalgae grow rapidly in bioreactors, providing protein-rich food whilst generating oxygen and consuming carbon dioxide from crew respiration.</p>
+                        </div>
+                        <div class="space-y-4 col-span-2">
+                            <h3 class="text-xl font-bold text-sky-400">Optimised Lighting</h3>
+                            <p class="text-gray-200">High-intensity LED grow lights deliver specific wavelengths for photosynthesis. These are essential for year-round crop production and are the dome's largest energy consumer.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'Temperature Regulation': {
+                title: 'TEMPERATURE REGULATION: Managing the Extremes',
+                // Updated with public placeholder
+                imageUrl: 'human.jpg',
+                content: `
+                    <div class="content-grid content-grid-2col">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Passive Thermal Control</h3>
+                            <p class="text-gray-200">Mars averages $-60^{\circ}C$ with wide swings. The design uses passive elements to maintain comfortable $18-24^{\circ}C$ interior temperatures:</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li>Double-layer walls with aerogel insulation.</li>
+                                <li>Phase-change materials store daytime heat for use at night.</li>
+                                <li>Dome walls use multi-layer insulation (MLI) to reflect solar heat and trap internal warmth.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Active Thermal Control System (ATCS)</h3>
+                            <p class="text-gray-200">These systems actively regulate internal temperature:</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li>Active heaters, typically solar-powered.</li>
+                                <li>Coolant loops circulate fluid to move heat around.</li>
+                                <li>External radiators release excess heat into space.</li>
+                                <li>Thermal sensors constantly monitor and adjust the systems.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            'Human Habitats & Life Support': {
+                title: 'HUMAN HABITATS & LIFE SUPPORT: A Living Bubble on an Alien World',
+                // Updated with public placeholder
+                imageUrl: 'temp.jpg ', 
+                content: `
+                    <div class="content-grid">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-sky-400">Integrated Systems</h3>
+                            <p class="text-gray-200">Creating an eco dome on Mars means building a miniature of Earth within a hostile environment. Every system works in harmony to create a living bubble on an alien world.</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-200 pl-4">
+                                <li><strong>Recycling:</strong> Closed-loop systems for air and water minimize waste.</li>
+                                <li><strong>Comfort:</strong> Designing spacious and aesthetically pleasing habitats (as shown in the image) is crucial for crew mental health and long-term sustainability.</li>
+                                <li><strong>Future Expansion:</strong> Interconnected, modular design allows the colony to grow as needed.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            'Video Presentation': {
+                title: 'Our Vision: Eco-Domes on Mars',
+                // Use a standard YouTube embed link structure, replace YOUTUBE_VIDEO_ID
+                videoUrl: 'over.mp4', // Placeholder: Rick Astley - Never Gonna Give You Up
+                content: '' // Content is built in displayConcept function
+            }
+        };
+
+        // Function to display the selected content
+        function displayConcept(conceptName) {
+            const displayArea = document.getElementById('display-area');
+            let data = concepts[conceptName];
+
+            // Set the first item (Martian Hostile Environment) as the default if none is active
+            if (!data) {
+                // Keep default behavior for safety, though user interaction should drive this now
+                conceptName = 'Martian Hostile Environment';
+                data = concepts[conceptName];
+            }
+
+
+            let contentHTML = '';
+
+            // Handle the video separately
+            if (conceptName === 'Video Presentation') {
+                contentHTML = `
+                    <div class="w-full max-w-4xl p-0 transition-opacity duration-500">
+                        <div class="p-6 content-card rounded-xl shadow-lg border border-sky-700">
+                            <h2 class="text-3xl font-bold mb-4 text-sky-400 text-center">${data.title}</h2>
+                            <div class="w-full aspect-video">
+                                <iframe 
+                                    class="w-full h-full rounded-xl" 
+                                    src="${data.videoUrl}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <p class="mt-4 text-sm text-center text-gray-400">NOTE: Please change the YouTube video ID in the HTML source code to your actual presentation video.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Handle the image and rich text concepts
+                contentHTML = `
+                    <div class="w-full max-w-6xl transition-opacity duration-500 p-4 sm:p-6">
+                        
+                        <h2 class="text-4xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-teal-200 drop-shadow-lg">${data.title}</h2>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            
+                            <div class="lg:col-span-1 p-4 content-card rounded-xl shadow-lg">
+                                <img 
+                                    src="${data.imageUrl}" 
+                                    alt="${conceptName} Diagram" 
+                                    class="w-full h-auto object-contain rounded-lg border border-sky-600 shadow-xl"
+                                    onerror="this.onerror=null; this.src='https://placehold.co/800x600/ff0000/ffffff?text=Error:+Image+URL+Required'; document.getElementById('image-note').textContent='(ERROR: Placeholder image used. Please replace the imageUrl in the JavaScript code with your actual slide image URL.)';"
+                                >
+                                <p id="image-note" class="mt-3 text-xs text-center text-gray-400">(Diagram for ${conceptName} System)</p>
+                            </div>
+
+                            <div class="lg:col-span-2 space-y-6 p-6 content-card rounded-xl shadow-lg">
+                                ${data.content}
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+            }
+            
+            displayArea.innerHTML = contentHTML;
+
+            // Update button styles: Highlight the active button
+            document.querySelectorAll('.concept-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('floating-btn');
+            });
+
+            const activeBtn = document.getElementById(`btn-${conceptName.replace(/[^a-zA-Z0-9]/g, '-')}`);
+            if (activeBtn) {
+                // The video button has a custom style, others use 'active'
+                if (conceptName === 'Video Presentation') {
+                    activeBtn.classList.remove('floating-btn');
+                    activeBtn.classList.add('bg-red-600', 'hover:bg-red-700', 'shadow-lg', 'hover:shadow-2xl', 'hover:scale-105');
+                } else {
+                    activeBtn.classList.add('active');
+                }
+            }
+        }
+        
+        // --- START OF MODIFICATION ---
+        // REMOVED: window.onload to stop auto-loading the first slide on page load.
+        // The page will now load with the welcome message in the display-area, 
+        // and content will only appear after a button is clicked.
+        // --- END OF MODIFICATION ---
+    </script>
+</head>
+<body class="p-4 sm:p-8">
+    
+    <img 
+        id="image-background" 
+        src="https://placehold.co/1920x1080/0d001a/ffffff?text=Main+Dome+Background+Image" 
+        alt="Mars Eco Dome Background" 
+        onerror="this.src='https://placehold.co/1920x1080/0d001a/ffffff?text=Martian+Background+Image+Required'" />
+    
+    <div id="overlay"></div>
+
+    <header class="text-center mb-8 sm:mb-12">
+        <h1 class="text-5xl sm:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-teal-400 drop-shadow-2xl">
+            Eco Domes on Mars
+        </h1>
+        <p class="text-xl text-gray-200 mt-2 font-light italic drop-shadow-lg">Engineering self-sustaining habitats for humanity's next frontier</p>
+    </header>
+
+    <main class="max-w-7xl mx-auto flex-grow w-full">
+        
+        <section class="mb-10">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-100 drop-shadow-md">System Overview</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-10 gap-4 justify-center items-stretch">
+                
+                <button 
+                    id="btn-Martian-Hostile-Environment" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-bold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal bg-red-800 hover:bg-red-900 shadow-lg hover:shadow-2xl hover:scale-105" 
+                    onclick="displayConcept('Martian Hostile Environment')">⚠ Martian<br><span class="font-normal">Hazards</span>
+                </button>
+                
+                <button 
+                    id="btn-Structural-System" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Structural System')">Structural<br><span class="font-normal">Dome</span>
+                </button>
+                
+                <button 
+                    id="btn-Atmospheric-Control" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Atmospheric Control')">Atmospheric<br><span class="font-normal">Control</span>
+                </button>
+
+                <button 
+                    id="btn-Radiation-Protection" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Radiation Protection')">Radiation<br><span class="font-normal">Shield</span>
+                </button>
+                
+                <button 
+                    id="btn-Energy-System" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Energy System')">Energy<br><span class="font-normal">Power</span>
+                </button>
+                
+                <button 
+                    id="btn-Water-Cycle" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Water Cycle')">Water<br><span class="font-normal">Recycle</span>
+                </button>
+                
+                <button 
+                    id="btn-Food-Production" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Food Production')">Food<br><span class="font-normal">Grow</span>
+                </button>
+                
+                <button 
+                    id="btn-Temperature-Regulation" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Temperature Regulation')">Temperature<br><span class="font-normal">Thermal</span>
+                </button>
+                
+                <button 
+                    id="btn-Human-Habitats-&-Life-Support" 
+                    class="concept-btn floating-btn w-full px-2 py-3 text-white text-base sm:text-sm font-semibold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal" 
+                    onclick="displayConcept('Human Habitats & Life Support')">Human Habitats<br><span class="font-normal">Life Support</span>
+                </button>
+                
+                <button 
+                    id="btn-Video-Presentation" 
+                    class="concept-btn w-full px-2 py-3 text-white text-base sm:text-sm font-bold italic rounded-xl transition duration-300 focus:outline-none whitespace-normal bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-2xl hover:scale-105" 
+                    onclick="displayConcept('Video Presentation')">▶ Watch<br>Video
+                </button>
+
+            </div>
+        </section>
+
+        <section id="display-area" class="flex justify-center items-start min-h-[400px]">
+            <div class="w-full max-w-4xl p-0 transition-opacity duration-500">
+                <div class="p-8 content-card rounded-xl shadow-lg border border-sky-700">
+                    <h2 class="text-3xl font-bold mb-4 text-sky-400 text-center">Welcome to the Eco Dome System Overview!</h2>
+                    <p class="text-gray-200 text-lg text-center">Please click any of the **System Overview** buttons above to explore the details of the Martian habitat design.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="text-center mt-12 pt-4 border-t border-gray-700">
+        <p class="text-sm text-gray-400">Built for the NASA Space Apps Challenge by the Eco Dome Team</p>
+    </footer>
+    
+</body>
+</html>
